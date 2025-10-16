@@ -1,0 +1,318 @@
+{
+  "version": "1.0",
+  "updated": "2025-10-13",
+  "locale": "zh-CN",
+  "notes": "本词表用于‘简洁常用口令 → 受控 SCPI 模板’的快速映射，不走 LLM。所有‘破坏性/高风险’指令默认需要二次确认。",
+  "globals": {
+    "normalization": "NFKC + lowercase + trim（并将 µ/μ 统一为 u）",
+    "units": {
+      "time": ["fs", "ps", "ns", "us", "ms", "s", "ks"],
+      "volt": ["mv", "v", "kv"],
+      "scale_div": ["div", "mdiv"]
+    },
+    "patterns": {
+      "channel": "(?:ch?\\s*([1-4])|通道\\s*([1-4]))",
+      "on_off": "(?:(?:打开|开启|enable|on)|(?:关闭|关掉|disable|off))",
+      "num": "[-+]?\\d+(?:\\.\\d+)?"
+    },
+    "synonyms": {
+      "open": ["打开", "开启", "enable", "on"],
+      "close": ["关闭", "关掉", "disable", "off"],
+      "run": ["开始采样", "开始采集", "开始运行", "启动", "run", "start"],
+      "stop": ["停止采样", "停止采集", "停止运行", "stop"],
+      "single": ["单次触发", "单次", "single"],
+      "trig_normal": ["正常触发", "正常", "normal"],
+      "trig_auto": ["自动触发", "自动", "auto"],
+      "force_trig": ["强制触发", "force trigger", "强触"],
+      "cursor": ["光标", "cursor"],
+      "measure": ["参数测量", "测量"],
+      "snapshot": ["参数快照", "快照", "snapshot"],
+      "quick_acq": ["快采", "快速采集", "fast acquire"],
+      "start_menu": ["开始菜单", "主菜单", "menu"],
+      "touch_lock": ["触摸锁", "触控锁"],
+      "screenshot": ["截屏", "截图", "硬拷贝", "hardcopy"],
+      "system_menu": ["系统设置菜单", "系统设置"],
+      "dvm": ["电压表", "dvm"],
+      "awg": ["任意波形发生器", "信号源", "awg", "arb"],
+      "math": ["数学通道", "math"],
+      "ref": ["参考波形", "reference"],
+      "logic": ["逻辑通道", "数字通道", "logic", "digital"],
+      "bus": ["总线", "协议解码", "bus", "decode"],
+      "vert_scale": ["垂直档位", "电压档位", "每格电压", "v/div"],
+      "timebase": ["时基", "timebase", "水平时基"],
+      "hdelay": ["水平延迟", "时基延迟", "delay"]
+    }
+  },
+  "intents": [
+    {
+      "id": "Acq.Run",
+      "canonical": "开始采样",
+      "aliases": ["开始采集", "开始运行", "启动", "run", "start"],
+      "regex": ["^(?:开始采样|开始采集|开始运行|启动|run|start)$"],
+      "slots": {},
+      "scpi": { "template": ":RUN" },
+      "category": "acquisition",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "Acq.Stop",
+      "canonical": "停止采样",
+      "aliases": ["停止采集", "停止运行", "stop"],
+      "regex": ["^(?:停止采样|停止采集|停止运行|stop)$"],
+      "slots": {},
+      "scpi": { "template": ":STOP" },
+      "category": "acquisition",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "System.AutoSet",
+      "canonical": "自动设置",
+      "aliases": ["自动设定", "autoset", "auto set"],
+      "regex": ["^(?:自动设置|自动设定|autoset|auto\\s*set)$"],
+      "slots": {},
+      "scpi": { "template": ":AUToset" },
+      "category": "system",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "Trig.Single",
+      "canonical": "单次触发",
+      "aliases": ["单次", "single"],
+      "regex": ["^(?:单次触发|单次|single)$"],
+      "slots": {},
+      "scpi": { "template": ":SINGle" },
+      "category": "trigger",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "Trig.Normal",
+      "canonical": "正常触发",
+      "aliases": ["正常", "normal"],
+      "regex": ["^(?:正常触发|正常|normal)$"],
+      "slots": {},
+      "scpi": { "template": ":TRIGger:SWEep NORMal" },
+      "category": "trigger",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "Trig.Auto",
+      "canonical": "自动触发",
+      "aliases": ["自动", "auto"],
+      "regex": ["^(?:自动触发|自动|auto)$"],
+      "slots": {},
+      "scpi": { "template": ":TRIGger:SWEep AUTO" },
+      "category": "trigger",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "Trig.Menu",
+      "canonical": "打开触发设置菜单",
+      "aliases": ["打开触发菜单", "触发菜单"],
+      "regex": ["^(?:打开)?触发(设置)?菜单$"],
+      "slots": {},
+      "scpi": { "template": "<UI:OPEN_TRIGGER_MENU>", "vendor_note": "部分厂商提供按键仿真或专用命令，如 :TRIGger:DLG" },
+      "category": "ui",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "Trig.Force",
+      "canonical": "强制触发",
+      "aliases": ["强触", "force trigger"],
+      "regex": ["^(?:强制触发|强触|force\\s*trigger)$"],
+      "slots": {},
+      "scpi": { "template": ":TRIGger:FORCe" },
+      "category": "trigger",
+      "safety": { "confirm": false }
+    },
+    {
+      "id": "Trig.Level.Set",
+      "canonical": "设置电平为 k (mV/V)",
+      "aliases": ["设置触发电平为", "把电平设为"],
+      "regex": [
+        "(?:设置|把)?(?:触发)?电平(?:为|设为)\n?\u0020*(?P<value>[-+]?\\d+(?:\\.\\d+)?)\u0020*(?P<unit>mv|v|kv)?"
+      ],
+      "slots": {
+        "value": {"type": "number", "required": true},
+        "unit": {"type": "enum", "enum": ["mv", "v", "kv"], "default": "v"}
+      },
+      "constraints": {"range": {"value": {"min": -1000, "max": 1000}}},
+      "scpi": { "template": ":TRIGger:LEVel {value}{unit}" },
+      "category": "trigger",
+      "safety": { "confirm": false }
+    },
+
+    { "id": "Cursor.OnOff", "canonical": "打开/关闭光标", "aliases": ["打开光标", "关闭光标", "光标打开", "光标关闭"],
+      "regex": ["^(?:打开|关闭)(?:.*)?光标$"],
+      "slots": {"state": {"type":"enum","enum":["ON","OFF"], "infer_from": "打开=>ON;关闭=>OFF"}},
+      "scpi": {"template": ":CURSor:STATE {state}"},
+      "category": "display", "safety": {"confirm": false} },
+
+    { "id": "Measure.Panel.Open", "canonical": "打开参数测量", "aliases": ["打开测量面板", "显示测量"],
+      "regex": ["^(?:打开|显示).*(?:参数)?测量$"],
+      "slots": {}, "scpi": {"template": ":MEASure:STATe ON"}, "category": "measure", "safety": {"confirm": false} },
+
+    { "id": "Measure.Snapshot.Open", "canonical": "打开参数快照", "aliases": ["打开快照", "显示快照"],
+      "regex": ["^(?:打开|显示).*(?:参数)?快照$"],
+      "slots": {}, "scpi": {"template": "<UI:OPEN_MEAS_SNAPSHOT>", "vendor_note": "供应商私有命令"}, "category": "measure", "safety": {"confirm": false} },
+
+    { "id": "Acquire.Fast.OnOff", "canonical": "打开/关闭快采", "aliases": ["打开快采", "关闭快采", "快速采集"],
+      "regex": ["^(?:打开|关闭).*(?:快采|快速采集)$"],
+      "slots": {"state": {"type":"enum","enum":["ON","OFF"], "infer_from":"打开=>ON;关闭=>OFF"}},
+      "scpi": {"template": ":ACQuire:MODE FAST; :ACQuire:FAST {state}"},
+      "category": "acquisition", "safety": {"confirm": false} },
+
+    { "id": "UI.StartMenu.Open", "canonical": "打开开始菜单", "aliases": ["打开主菜单"],
+      "regex": ["^(?:打开)(?:开始|主)菜单$"],
+      "slots": {}, "scpi": {"template": "<UI:OPEN_MAIN_MENU>"}, "category": "ui", "safety": {"confirm": false} },
+
+    { "id": "UI.TouchLock.OnOff", "canonical": "打开/关闭触摸锁", "aliases": ["打开触摸锁", "关闭触摸锁", "触控锁"],
+      "regex": ["^(?:打开|关闭).*(?:触摸锁|触控锁)$"],
+      "slots": {"state": {"type":"enum","enum":["ON","OFF"], "infer_from":"打开=>ON;关闭=>OFF"}},
+      "scpi": {"template": "<UI:TOUCHLOCK {state}>"}, "category": "ui", "safety": {"confirm": false} },
+
+    { "id": "System.Screenshot",
+      "canonical": "截屏",
+      "aliases": ["截图", "硬拷贝", "hardcopy"],
+      "regex": ["^(?:截屏|截图|硬拷贝|hardcopy)$"],
+      "slots": {},
+      "scpi": {"template": ":HARDcopy"},
+      "category": "system", "safety": {"confirm": false} },
+
+    { "id": "System.SettingsMenu.Open", "canonical": "打开系统设置菜单", "aliases": ["打开系统设置"],
+      "regex": ["^(?:打开).*(?:系统设置)(?:菜单)?$"],
+      "slots": {}, "scpi": {"template": "<UI:OPEN_SYSTEM_SETTINGS>"}, "category": "ui", "safety": {"confirm": false} },
+
+    { "id": "DVM.On", "canonical": "打开电压表", "aliases": ["开启电压表", "dvm"],
+      "regex": ["^(?:打开|开启).*(?:电压表|dvm)$"],
+      "slots": {}, "scpi": {"template": ":DVM:STATe ON"}, "category": "measure", "safety": {"confirm": false} },
+
+    { "id": "AWG.OnOff", "canonical": "打开/关闭任意波形发生器", "aliases": ["打开任意波形发生器", "关闭任意波形发生器", "打开信号源", "关闭信号源", "awg"],
+      "regex": ["^(?:打开|关闭).*(?:任意波形发生器|信号源|awg|arb)$"],
+      "slots": {"state": {"type":"enum","enum":["ON","OFF"], "infer_from":"打开=>ON;关闭=>OFF"}},
+      "scpi": {"template": ":AWG:OUTPut {state}"}, "category": "awg", "safety": {"confirm": false} },
+
+    { "id": "Measure.ClearAll", "canonical": "清除示波器测量结果", "aliases": ["清除所有测量", "关闭所有测量项"],
+      "regex": ["^(?:清除|关闭).*(?:所有)?测量(结果|项)?$"],
+      "slots": {}, "scpi": {"template": ":MEASure:CLEar"}, "category": "measure", "safety": {"confirm": false} },
+
+    { "id": "System.FactoryReset", "canonical": "恢复出厂设置", "aliases": ["恢复出厂", "出厂设置"],
+      "regex": ["^(?:恢复出厂设置|恢复出厂|出厂设置)$"],
+      "slots": {}, "scpi": {"template": ":SYSTem:FACTory"}, "category": "system", "safety": {"confirm": true, "confirm_text": "将恢复出厂设置，是否继续？"} },
+
+    { "id": "Timebase.Scale",
+      "canonical": "调整时基为 t (s/ms/µs/ns)",
+      "aliases": ["调整时基为", "把时基调到", "设置时基"],
+      "regex": [
+        "(?:调整|把|设置)?时基(?:为|到)?\\s*(?P<value>[-+]?\\d+(?:\\.\\d+)?)\\s*(?P<unit>fs|ps|ns|us|µs|μs|ms|s|ks)?"
+      ],
+      "slots": {
+        "value": {"type": "number", "required": true},
+        "unit": {"type": "enum", "enum": ["fs","ps","ns","us","ms","s","ks"], "normalize": {"µs": "us", "μs": "us"}, "default": "s"}
+      },
+      "constraints": {"range": {"value": {"min": 1e-12, "max": 1e3}}},
+      "scpi": { "template": ":TIMebase:SCALe {value}{unit}" },
+      "category": "timebase", "safety": {"confirm": false}
+    },
+
+    { "id": "Timebase.Delay",
+      "canonical": "调整水平延迟为 t (fs,ps,ns,us,ms,s,ks)",
+      "aliases": ["调整水平延迟为", "设置时基延迟", "设置延迟"],
+      "regex": [
+        "(?:调整|设置)?(?:水平)?延迟(?:为|到)?\\s*(?P<value>[-+]?\\d+(?:\\.\\d+)?)\\s*(?P<unit>fs|ps|ns|us|µs|μs|ms|s|ks)?"
+      ],
+      "slots": {
+        "value": {"type": "number", "required": true},
+        "unit": {"type": "enum", "enum": ["fs","ps","ns","us","ms","s","ks"], "normalize": {"µs": "us", "μs": "us"}, "default": "s"}
+      },
+      "constraints": {},
+      "scpi": { "template": ":TIMebase:DELay {value}{unit}" },
+      "category": "timebase", "safety": {"confirm": false}
+    },
+
+    { "id": "Chan.Open",
+      "canonical": "打开通道1/2/3/4",
+      "aliases": ["开启通道1", "打开CH1", "打开C1"],
+      "regex": ["^(?:打开|开启).*?(?:通道\\s*([1-4])|c(?:h)?\\s*([1-4]))$"],
+      "slots": {"channel": {"type":"enum","enum":["1","2","3","4"], "from_group": [1,2]}},
+      "scpi": {"template": ":CHANnel{channel}:DISPlay ON"},
+      "category": "channel", "safety": {"confirm": false} },
+
+    { "id": "Chan.Close",
+      "canonical": "关闭通道1/2/3/4",
+      "aliases": ["关闭CH1", "关闭C1"],
+      "regex": ["^(?:关闭).*?(?:通道\\s*([1-4])|c(?:h)?\\s*([1-4]))$"],
+      "slots": {"channel": {"type":"enum","enum":["1","2","3","4"], "from_group": [1,2]}},
+      "scpi": {"template": ":CHANnel{channel}:DISPlay OFF"},
+      "category": "channel", "safety": {"confirm": false} },
+
+    { "id": "Math.Open",
+      "canonical": "打开数学通道",
+      "aliases": ["打开MATH"],
+      "regex": ["^(?:打开).*(?:数学通道|math)$"],
+      "slots": {},
+      "scpi": {"template": ":MATH:DISPlay ON"},
+      "category": "math", "safety": {"confirm": false} },
+
+    { "id": "Ref.Open",
+      "canonical": "参考波形x",
+      "aliases": ["打开参考波形", "显示参考波形"],
+      "regex": ["^(?:打开|显示).*参考波形(?:\\s*|#)?(?P<ref>[A-Za-z0-9]+)?$"],
+      "slots": {"ref": {"type": "string", "required": false}},
+      "scpi": {"template": ":REFerence:DISPlay ON; :REFerence:SELect {ref}", "vendor_note": "参考波形编号/标签依厂商而定"},
+      "category": "reference", "safety": {"confirm": false} },
+
+    { "id": "Logic.Open",
+      "canonical": "打开逻辑通道",
+      "aliases": ["打开数字通道", "打开logic", "打开digital"],
+      "regex": ["^(?:打开).*(?:逻辑通道|数字通道|logic|digital)$"],
+      "slots": {},
+      "scpi": {"template": ":DIGital:DISPlay ON"},
+      "category": "logic", "safety": {"confirm": false} },
+
+    { "id": "Logic.Close",
+      "canonical": "关闭逻辑通道",
+      "aliases": ["关闭数字通道"],
+      "regex": ["^(?:关闭).*(?:逻辑通道|数字通道)$"],
+      "slots": {},
+      "scpi": {"template": ":DIGital:DISPlay OFF"},
+      "category": "logic", "safety": {"confirm": false} },
+
+    { "id": "Bus.OnOff",
+      "canonical": "打开/关闭总线",
+      "aliases": ["打开协议解码", "关闭协议解码"],
+      "regex": ["^(?:打开|关闭).*(?:总线|协议解码)$"],
+      "slots": {"state": {"type":"enum","enum":["ON","OFF"], "infer_from":"打开=>ON;关闭=>OFF"}},
+      "scpi": {"template": ":BUS:STATe {state}", "vendor_note": "不同厂家常为 :DECoder:STATE 或每种总线单独开关"},
+      "category": "decode", "safety": {"confirm": false} },
+
+    { "id": "Chan.VertScale.Set",
+      "canonical": "设置通道n垂直档位为k (m/mV)",
+      "aliases": ["设置通道{n}的垂直档位为", "将CH{n}设为{v}V/格"],
+      "regex": [
+        "(?:设置|将)?(?:通道\\s*([1-4])|c(?:h)?\\s*([1-4]))[^\\d]*?(?:垂直档位|每格电压|v/div)[^\\d]*?(?P<value>[-+]?\\d+(?:\\.\\d+)?)\\s*(?P<unit>m|mv|v)?"
+      ],
+      "slots": {
+        "channel": {"type":"enum","enum":["1","2","3","4"], "from_group": [1,2]},
+        "value": {"type": "number", "required": true},
+        "unit": {"type": "enum", "enum": ["mv","v"], "normalize": {"m":"mv"}, "default": "v"}
+      },
+      "constraints": {"range": {"value": {"min": 0.1, "max": 1000}}},
+      "scpi": {"template": ":CHANnel{channel}:SCALe {value}{unit}"},
+      "category": "channel", "safety": {"confirm": false} }
+
+    ,
+    { "id": "Chan.VertPos.Set", "canonical": "设置通道n垂直位置为k (div/mdiv)",
+      "aliases": ["设置通道{n}位置为", "设置CH{n}位置为"],
+      "regex": [
+        "(?:设置)?(?:通道\\s*([1-4])|c(?:h)?\\s*([1-4]))[^\\d]*?(?:垂直位置|位置)[^\\d]*?(?P<value>[-+]?\\d+(?:\\.\\d+)?)\\s*(?P<unit>div|mdiv)?"
+      ],
+      "slots": {
+        "channel": {"type":"enum","enum":["1","2","3","4"], "from_group": [1,2]},
+        "value": {"type": "number", "required": true},
+        "unit": {"type": "enum", "enum": ["div","mdiv"], "default": "div"}
+      },
+      "scpi": {"template": ":CHANnel{channel}:POSition {value}{unit}", "vendor_note": "部分厂家用 :OFFSet (单位 V) 或 :POS (单位 div)"},
+      "category": "channel", "safety": {"confirm": false},
+      "proposed_new": true }
+  ]
+}
